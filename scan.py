@@ -65,7 +65,9 @@ pn532 = PN532.PN532(cs=CS, sclk=SCLK, mosi=MOSI, miso=MISO)
 pn532.begin()
 pn532.SAM_configuration()
 print('You may begin scanning.')
-while True:
+teacher_detected = False
+while teacher_detected == False:
+
     # Wait for a card to be available
     uid = pn532.read_passive_target()
     # Try again if no card found
@@ -77,20 +79,13 @@ while True:
     print('Card UID 0x{0}'.format(binascii.hexlify(uid)))
     #    # Authenticate and read block 4
 
-    if last_uid == teacher_db(i):
+    if last_uid == teacher_db():
         print("Teacher Recognized!")
-        time_end=time.time()
-        while time_end<time.time.time()+30:
-            uid = pn532.read_passive_target()
-            last_uid = format(binascii.hexlify(uid))
-            if last_uid == student_db():
-                print("Student detected ")
-            else:
-                print("Student not detected")
-            
+        teacher_detected = True
+
     else:
         print("Scan Teacher's ID to begin attendance system")
-
+        teacher_detected = False
 
 
     if not pn532.mifare_classic_authenticate_block(uid, 4, PN532.MIFARE_CMD_AUTH_B,
@@ -99,3 +94,12 @@ while True:
         continue
 
     time.sleep(DELAY)
+print("Student Detection, time= ",time.time())
+time_end=time.time()
+while time_end < time.time() + 30:
+    uid = pn532.read_passive_target()
+    new_uid = format(binascii.hexlify(uid))
+    if new_uid == student_db():
+        print("Student detected ")
+    else:
+        print("Student not detected")
