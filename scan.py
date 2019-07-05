@@ -94,12 +94,18 @@ while teacher_detected == False:
         continue
 
     time.sleep(DELAY)
-print("Student Detection, time= ",time.time())
-time_end=time.time()
-while time_end < time.time() + 30:
+print("Student Detection, time= ",time.ctime())
+time_end=time.time()+10
+while time.time() < time_end:
     uid = pn532.read_passive_target()
+    if uid is None:
+        continue
+
     new_uid = format(binascii.hexlify(uid))
     if new_uid == student_db():
         print("Student detected ")
     else:
         print("Student not detected")
+
+    time.sleep(DELAY)
+print("Time is out, no more attendance, time = ", time.ctime())
