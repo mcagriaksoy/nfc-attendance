@@ -1,21 +1,18 @@
 import mysql.connector
 
-
 mydb = mysql.connector.connect(
-  host="192.168.173.112",
-  user="root",
-  passwd="R3juvenation",
-  database="testdb"
+    host="192.168.173.112",
+    user="root",
+    passwd="R3juvenation",
+    database="testdb"
 )
+NUM_TEACHERS = 1
+mycursor = mydb.cursor()
 
-mycursor= mydb.cursor()
 
+def access_db(i):
 
-mycursor.execute("SELECT id FROM teachers")
+    mycursor.execute("SELECT id FROM teachers")
 
-result_list = [x[0] for x in mycursor.fetchall()]
-print(result_list[0])
-if result_list[0] == 'cbe27338':
-    print("match")
-else:
-    print("mismatch")
+    result_list = [x[i] for x in mycursor.fetchall()]
+    return result_list[i]
