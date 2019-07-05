@@ -2,7 +2,7 @@ import mysql.connector
 
 
 mydb = mysql.connector.connect(
-  host="localhost",
+  host="192.168.173.112",
   user="root",
   passwd="R3juvenation",
   database="testdb"
@@ -10,10 +10,6 @@ mydb = mysql.connector.connect(
 
 mycursor= mydb.cursor()
 
-# adding new lines
-# sqlFormula = "INSERT INTO teachers (id, name) VALUES (%s, %s)"
-#
-# student1 = ("cbe27338", "Buğrahan")
 
 mycursor.execute("SELECT id FROM teachers")
 
