@@ -3,7 +3,7 @@ import mysql.connector
 mydb = mysql.connector.connect(
     host="192.168.173.112",
     user="root",
-    passwd="R3juvenation",
+    passwd="password",
     database="testdb"
 )
 NUM_TEACHERS = 1
