@@ -15,20 +15,17 @@ mydb = mysql.connector.connect(
     database="testdb"
 )
 mycursor = mydb.cursor()  # define cursor
-i=0
 
 def teacher_db():
-    mycursor.execute("SELECT id FROM teachers")
 
-    result_list = [x[0] for x in mycursor.fetchall()]
-    return result_list[0]
+    mycursor.execute("SELECT teacher_id FROM eem475")
+    result = [x[0] for x in mycursor.fetchall()]
+    return str(result[0])
 
-def student_db():
-    mycursor.execute("SELECT id FROM students")
-
-    result_list = [x[0] for x in mycursor.fetchall()]
-    return result_list[0]
-
+def attending(id):
+    query = "UPDATE eem475 SET absence = '1' WHERE student_id = '{}'".format(id)
+    print(query)
+    mycursor.execute(query)
 
 
 print('PN532 NFC RFID 13.56MHz Card Reading Attendance Software')
@@ -41,10 +38,7 @@ MOSI = 23
 MISO = 24
 # GPIO 25, pin 22
 SCLK = 25
-
-# Configure the key to use for writing to the MiFare card.  You probably don't
-# need to change this from the default below unless you know your card has a
-# different key associated with it.
+# Configure the key to use for writing to the MiFare card.
 CARD_KEY = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
 # Number of seconds to delay after reading data.
@@ -72,21 +66,22 @@ while teacher_detected == False:
     uid = pn532.read_passive_target()
     # Try again if no card found
     if uid is None:
-        continue
+        continue #no card or bad card detection results in looping
     # Found a card, now try to read block 4 to detect the block type
     last_uid = format(binascii.hexlify(uid))
 
     print('Card UID 0x{0}'.format(binascii.hexlify(uid)))
     #    # Authenticate and read block 4
 
-    if last_uid == teacher_db():
-        print("Teacher Recognized!")
+    mycursor.execute("SELECT teacher_id FROM eem475")
+    result = [x[0] for x in mycursor.fetchall()]
+    result = str(result[0])
+    if result == last_uid:
+        print("Teacher's detected, beginning attendance")
         teacher_detected = True
-
     else:
-        print("Scan Teacher's ID to begin attendance system")
+        print("Teacher's not detected, please scan a teacher's card")
         teacher_detected = False
-
 
     if not pn532.mifare_classic_authenticate_block(uid, 4, PN532.MIFARE_CMD_AUTH_B,
                                                    CARD_KEY):
@@ -94,18 +89,25 @@ while teacher_detected == False:
         continue
 
     time.sleep(DELAY)
-print("Student Detection, time= ",time.ctime())
-time_end=time.time()+10
-while time.time() < time_end:
+    print("Student Detection, time= ", time.ctime())
+time_end = time.time() + 10
+while time.time() < time_end: #begins timing
     uid = pn532.read_passive_target()
     if uid is None:
-        continue
+        continue  #no card or bad card detection results in looping
 
-    new_uid = format(binascii.hexlify(uid))
-    if new_uid == student_db():
-        print("Student detected ")
+    student_uid = format(binascii.hexlify(uid))
+    mycursor.execute("SELECT student_id FROM eem475")
+    student_list = [x[0] for x in mycursor.fetchall()]
+
+    if student_uid in student_list:
+        print("here")
+        student_uid=str(student_uid)
+        attending(student_uid)
+
     else:
-        print("Student not detected")
+        print("absent")
+
 
     time.sleep(DELAY)
 print("Time is out, no more attendance, time = ", time.ctime())
