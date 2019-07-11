@@ -89,7 +89,7 @@ while teacher_detected == False:
         continue
 
     time.sleep(DELAY)
-    print("Student Detection, time= ", time.ctime())
+print("Student Detection, time= ", time.ctime())
 time_end = time.time() + 10
 while time.time() < time_end: #begins timing
     uid = pn532.read_passive_target()
@@ -111,3 +111,5 @@ while time.time() < time_end: #begins timing
 
     time.sleep(DELAY)
 print("Time is out, no more attendance, time = ", time.ctime())
+mydb.commit() #committing changes
+mydb.close() #closing connection

@@ -4,13 +4,13 @@ mydb = mysql.connector.connect(
     host="localhost",
     user="root",
     passwd="R3juvenation",
-    database="testdb"
+    database="ogrdb"
 )
 
 
 def update_list(id):
     id1 = id
-    query = "UPDATE eem475 SET absence = '0' WHERE student_id = '{}'".format(id)
+    query = "UPDATE eem475 SET absence = '1' WHERE student_id = '{}'".format(id)
     print(query)
     mycursor.execute(query)
 
@@ -18,6 +18,10 @@ def update_list(id):
 mycursor = mydb.cursor()
 mycursor.execute("SELECT teacher_id FROM eem475")
 result = [x[0] for x in mycursor.fetchall()]
+result = str(result[0])
+mycursor.execute("SELECT teacher_id FROM eem475")
+result = [x[0] for x in mycursor.fetchall()]
+print(result)
 result = str(result[0])
 if result == '13f755df':
     mycursor.execute("SELECT student_id FROM eem475")
@@ -36,3 +40,5 @@ if result == '13f755df':
         print("guy absent")
 else:
     print("nah")
+mydb.commit() #committing changes
+mydb.close() #closing connection
