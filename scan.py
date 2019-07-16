@@ -7,6 +7,35 @@ import signal
 import sys
 import Adafruit_PN532 as PN532
 
+import Adafruit_Nokia_LCD as LCD
+import Adafruit_GPIO.SPI as SPI
+
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
+
+
+# 5110 LCD's hardware SPI config:
+DC = 17 #FYI, these are GPIO Pins
+RST = 27
+SPI_PORT = 0
+SPI_DEVICE = 0
+
+# Hardware SPI usage:
+disp = LCD.PCD8544(DC, RST, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=4000000))
+
+# Software SPI usage (defaults to bit-bang SPI interface):
+#disp = LCD.PCD8544(DC, RST, SCLK, DIN, CS)
+
+# Initialize library.
+disp.begin(contrast=60)
+
+# Clear display.
+disp.clear()
+disp.display()
+# Get drawing object to draw on image.
+draw = ImageDraw.Draw(image)
+font = ImageFont.load_default() # Load default font.
 # initialize which server to connect to
 mydb = mysql.connector.connect(
     host="192.168.173.112",
@@ -25,6 +54,7 @@ def teacher_db():
 def attending(id):
     query = "UPDATE eem475 SET absence = '1' WHERE student_id = '{}'".format(id)
     print(query)
+    draw.text((8, 30), '{} is here'.format(id), font=font)
     mycursor.execute(query)
 
 
@@ -59,6 +89,8 @@ pn532 = PN532.PN532(cs=CS, sclk=SCLK, mosi=MOSI, miso=MISO)
 pn532.begin()
 pn532.SAM_configuration()
 print('You may begin scanning.')
+draw.text((3,30), 'You may begin scanning.', font=font)
+
 teacher_detected = False
 while teacher_detected == False:
 
