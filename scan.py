@@ -14,18 +14,19 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
+# Number of seconds to delay after reading data.
+DELAY = 2
 
-# 5110 LCD's hardware SPI config:
-DC = 17 #FYI, these are GPIO Pins
-RST = 27
-SPI_PORT = 0
-SPI_DEVICE = 0
+# Adafruit 5110 software SPI config, GPIO:
+SCLK = 4
+DIN = 17
+DC = 27
+RST = 22
+CS = 8
 
-# Hardware SPI usage:
-disp = LCD.PCD8544(DC, RST, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=4000000))
 
 # Software SPI usage (defaults to bit-bang SPI interface):
-#disp = LCD.PCD8544(DC, RST, SCLK, DIN, CS)
+disp = LCD.PCD8544(DC, RST, SCLK, DIN, CS)
 
 # Initialize library.
 disp.begin(contrast=60)
@@ -34,8 +35,11 @@ disp.begin(contrast=60)
 disp.clear()
 disp.display()
 # Get drawing object to draw on image.
+image = Image.new('1', (LCD.LCDWIDTH, LCD.LCDHEIGHT))
 draw = ImageDraw.Draw(image)
 font = ImageFont.load_default() # Load default font.
+draw.text((3,80),'Program Starts', font=font)
+time.sleep(DELAY)
 # initialize which server to connect to
 mydb = mysql.connector.connect(
     host="192.168.173.112",
@@ -71,8 +75,6 @@ SCLK = 25
 # Configure the key to use for writing to the MiFare card.
 CARD_KEY = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
-# Number of seconds to delay after reading data.
-DELAY = 2
 
 # Prefix, aka header from the card
 HEADER = b'BG'
