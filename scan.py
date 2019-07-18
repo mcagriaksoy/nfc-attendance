@@ -7,47 +7,45 @@ import signal
 import sys
 import Adafruit_PN532 as PN532
 
-import Adafruit_Nokia_LCD as LCD
-import Adafruit_GPIO.SPI as SPI
-
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFont
 
 # Number of seconds to delay after reading data.
 DELAY = 2
 
-# Adafruit 5110 software SPI config, GPIO:
-SCLK = 4
-DIN = 17
-DC = 27
-RST = 22
-CS = 8
+# LEDs GPIO pins,
+ledGreen = 17
+ledYellow = 27
+ledRed = 22
+
+GPIO.setup(ledGreen,OUT)
+GPIO.setup(ledYellow,OUT)
+GPIO.setup(ledRed,OUT)
 
 
-# Software SPI usage (defaults to bit-bang SPI interface):
-disp = LCD.PCD8544(DC, RST, SCLK, DIN, CS)
+def GreenOn(x):
+    GPIO.output(ledGreen, GPIO.HIGH)
+    time.sleep(x)
+    GPIO.output(ledGreen, GPIO.LOW)
+def YellowOn():
+    GPIO.output(ledYellow, GPIO.HIGH)
+    time.sleep(x)
+    GPIO.output(ledYellow, GPIO.LOW)
+def RedOn(x):
+    GPIO.output(ledRed, GPIO.HIGH)
+    time.sleep(x)
+    GPIO.output(ledRed, GPIO.LOW)
 
-# Initialize library.
-disp.begin(contrast=60)
-
-# Clear display.
-disp.clear()
-disp.display()
-# Get drawing object to draw on image.
-image = Image.new('1', (LCD.LCDWIDTH, LCD.LCDHEIGHT))
-draw = ImageDraw.Draw(image)
-font = ImageFont.load_default() # Load default font.
-draw.text((3,80),'Program Starts', font=font)
-time.sleep(DELAY)
-# initialize which server to connect to
+# initialize mysql server to connect to
 mydb = mysql.connector.connect(
     host="192.168.173.112",
     user="root",
     passwd="R3juvenation",
     database="testdb"
 )
+YellowOn(500) #Yellow LED means system is on
+
+
 mycursor = mydb.cursor()  # define cursor
+
 
 def teacher_db():
 
@@ -55,11 +53,12 @@ def teacher_db():
     result = [x[0] for x in mycursor.fetchall()]
     return str(result[0])
 
+
 def attending(id):
     query = "UPDATE eem475 SET absence = '1' WHERE student_id = '{}'".format(id)
     print(query)
-    draw.text((8, 30), '{} is here'.format(id), font=font)
     mycursor.execute(query)
+    GreenOn(500)
 
 
 print('PN532 NFC RFID 13.56MHz Card Reading Attendance Software')
@@ -91,11 +90,10 @@ pn532 = PN532.PN532(cs=CS, sclk=SCLK, mosi=MOSI, miso=MISO)
 pn532.begin()
 pn532.SAM_configuration()
 print('You may begin scanning.')
-draw.text((3,30), 'You may begin scanning.', font=font)
 
 teacher_detected = False
-while teacher_detected == False:
-
+while not teacher_detected:
+    YellowOn(500)
     # Wait for a card to be available
     uid = pn532.read_passive_target()
     # Try again if no card found
@@ -113,9 +111,11 @@ while teacher_detected == False:
     if result == last_uid:
         print("Teacher's detected, beginning attendance")
         teacher_detected = True
+        YellowOn(500)
     else:
         print("Teacher's not detected, please scan a teacher's card")
         teacher_detected = False
+        RedOn(500)
 
     if not pn532.mifare_classic_authenticate_block(uid, 4, PN532.MIFARE_CMD_AUTH_B,
                                                    CARD_KEY):
@@ -126,6 +126,7 @@ while teacher_detected == False:
 print("Student Detection, time= ", time.ctime())
 time_end = time.time() + 10
 while time.time() < time_end: #begins timing
+    YellowOn(500)
     uid = pn532.read_passive_target()
     if uid is None:
         continue  #no card or bad card detection results in looping
@@ -136,12 +137,13 @@ while time.time() < time_end: #begins timing
 
     if student_uid in student_list:
         print("here")
+        GreenOn(500)
         student_uid=str(student_uid)
         attending(student_uid)
 
     else:
         print("absent")
-
+        RedOn(500)
 
     time.sleep(DELAY)
 print("Time is out, no more attendance, time = ", time.ctime())
