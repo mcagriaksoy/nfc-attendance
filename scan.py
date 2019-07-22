@@ -36,10 +36,10 @@ def RedOn(x):
 
 # initialize mysql server to connect to
 mydb = mysql.connector.connect(
-    host="192.168.173.112",
-    user="root",
-    passwd="R3juvenation",
-    database="testdb"
+    host="remotemysql.com",
+    user="00An9M2NSl",
+    passwd="rk85ywrVcY",
+    database="00An9M2NSl"
 )
 YellowOn(500) #Yellow LED means system is on
 
