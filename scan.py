@@ -7,32 +7,36 @@ import signal
 import sys
 import Adafruit_PN532 as PN532
 
-
 # Number of seconds to delay after reading data.
 DELAY = 2
 
-# LEDs GPIO pins,
-ledGreen = 17
-ledYellow = 27
-ledRed = 22
+# LEDs GPIO pins
+GREEN_LED = 17
+YELLOW_LED = 27
+RED_LED = 22
 
-GPIO.setup(ledGreen,OUT)
-GPIO.setup(ledYellow,OUT)
-GPIO.setup(ledRed,OUT)
+# GPIO setup
+GPIO.setup(GREEN_LED, OUT)
+GPIO.setup(YELLOW_LED, OUT)
+GPIO.setup(RED_LED, OUT)
 
+def green_on(x):
+    ''' This function turns on the green LED for x seconds '''
+    GPIO.output(GREEN_LED, GPIO.HIGH)
+    time.sleep(x)
+    GPIO.output(GREEN_LED, GPIO.LOW)
 
-def GreenOn(x):
-    GPIO.output(ledGreen, GPIO.HIGH)
+def yellow_on(x):
+    ''' This function turns on the yellow LED for x seconds '''
+    GPIO.output(YELLOW_LED, GPIO.HIGH)
     time.sleep(x)
-    GPIO.output(ledGreen, GPIO.LOW)
-def YellowOn():
-    GPIO.output(ledYellow, GPIO.HIGH)
+    GPIO.output(YELLOW_LED, GPIO.LOW)
+
+def red_on(x):
+    ''' This function turns on the red LED for x seconds '''
+    GPIO.output(RED_LED, GPIO.HIGH)
     time.sleep(x)
-    GPIO.output(ledYellow, GPIO.LOW)
-def RedOn(x):
-    GPIO.output(ledRed, GPIO.HIGH)
-    time.sleep(x)
-    GPIO.output(ledRed, GPIO.LOW)
+    GPIO.output(RED_LED, GPIO.LOW)
 
 # initialize mysql server to connect to
 mydb = mysql.connector.connect(
@@ -41,25 +45,23 @@ mydb = mysql.connector.connect(
     passwd="rk85ywrVcY",
     database="00An9M2NSl"
 )
-YellowOn(500) #Yellow LED means system is on
 
-
+yellow_on(500) #Yellow LED means system is on
 mycursor = mydb.cursor()  # define cursor
 
-
 def teacher_db():
+    ''' This function returns the teacher's id from the database '''
 
     mycursor.execute("SELECT teacher_id FROM eem475")
     result = [x[0] for x in mycursor.fetchall()]
     return str(result[0])
 
-
 def attending(id):
+    ''' This function updates the database to show that the student is attending '''
     query = "UPDATE eem475 SET absence = '1' WHERE student_id = '{}'".format(id)
     print(query)
     mycursor.execute(query)
-    GreenOn(500)
-
+    green_on(500)
 
 print('PN532 NFC RFID 13.56MHz Card Reading Attendance Software')
 # PN532 configuration for a Raspberry Pi GPIO:
@@ -74,14 +76,12 @@ SCLK = 25
 # Configure the key to use for writing to the MiFare card.
 CARD_KEY = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
-
 # Prefix, aka header from the card
 HEADER = b'BG'
 
-
-def close(signal, frame):
+def close():
+    ''' This function closes the program '''
     sys.exit(0)
-
 
 signal.signal(signal.SIGINT, close)
 
@@ -91,9 +91,9 @@ pn532.begin()
 pn532.SAM_configuration()
 print('You may begin scanning.')
 
-teacher_detected = False
-while not teacher_detected:
-    YellowOn(500)
+TEACHER_DETECTED = False
+while not TEACHER_DETECTED:
+    yellow_on(500)
     # Wait for a card to be available
     uid = pn532.read_passive_target()
     # Try again if no card found
@@ -102,7 +102,7 @@ while not teacher_detected:
     # Found a card, now try to read block 4 to detect the block type
     last_uid = format(binascii.hexlify(uid))
 
-    print('Card UID 0x{0}'.format(binascii.hexlify(uid)))
+    print(f'Card UID 0x{0}'.format(binascii.hexlify(uid)))
     #    # Authenticate and read block 4
 
     mycursor.execute("SELECT teacher_id FROM eem475")
@@ -110,12 +110,12 @@ while not teacher_detected:
     result = str(result[0])
     if result == last_uid:
         print("Teacher's detected, beginning attendance")
-        teacher_detected = True
-        YellowOn(500)
+        TEACHER_DETECTED = True
+        yellow_on(500)
     else:
         print("Teacher's not detected, please scan a teacher's card")
-        teacher_detected = False
-        RedOn(500)
+        TEACHER_DETECTED = False
+        red_on(500)
 
     if not pn532.mifare_classic_authenticate_block(uid, 4, PN532.MIFARE_CMD_AUTH_B,
                                                    CARD_KEY):
@@ -126,7 +126,7 @@ while not teacher_detected:
 print("Student Detection, time= ", time.ctime())
 time_end = time.time() + 10
 while time.time() < time_end: #begins timing
-    YellowOn(500)
+    yellow_on(500)
     uid = pn532.read_passive_target()
     if uid is None:
         continue  #no card or bad card detection results in looping
@@ -137,13 +137,13 @@ while time.time() < time_end: #begins timing
 
     if student_uid in student_list:
         print("here")
-        GreenOn(500)
-        student_uid=str(student_uid)
+        green_on(500)
+        student_uid = str(student_uid)
         attending(student_uid)
 
     else:
         print("absent")
-        RedOn(500)
+        red_on(500)
 
     time.sleep(DELAY)
 print("Time is out, no more attendance, time = ", time.ctime())
